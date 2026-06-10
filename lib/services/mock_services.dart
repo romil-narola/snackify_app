@@ -64,16 +64,16 @@ class MockSnackService implements SnackRepository {
   final MockDatabase _db = MockDatabase();
   final _controller = StreamController<List<SnackModel>>.broadcast();
 
-  MockSnackService() {
-    _emit();
-  }
-
   void _emit() {
-    _controller.add(List.unmodifiable(_db.snacks));
+    if (!_controller.isClosed) {
+      _controller.add(List.unmodifiable(_db.snacks));
+    }
   }
 
   @override
   Stream<List<SnackModel>> getSnacks() {
+    // Re-emit immediately so new subscribers never miss the current state
+    Future.microtask(_emit);
     return _controller.stream;
   }
 
@@ -106,22 +106,28 @@ class MockOrderService implements OrderRepository {
   final MockDatabase _db = MockDatabase();
   final _controller = StreamController<List<OrderModel>>.broadcast();
 
-  MockOrderService() {
-    _emit();
-  }
-
   void _emit() {
-    _controller.add(List.unmodifiable(_db.orders));
+    if (!_controller.isClosed) {
+      _controller.add(List.unmodifiable(_db.orders));
+    }
   }
 
   @override
   Stream<List<OrderModel>> getOrders({String? employeeId}) {
+    // Re-emit immediately so new subscribers never miss the current state
+    Future.microtask(_emit);
     if (employeeId != null) {
-      return _controller.stream.map(
-        (list) => list.where((o) => o.employeeId == employeeId).toList(),
-      );
+      return _controller.stream.map((list) {
+        final filtered = list.where((o) => o.employeeId == employeeId).toList();
+        filtered.sort((a, b) => b.orderDate.compareTo(a.orderDate));
+        return filtered;
+      });
     }
-    return _controller.stream;
+    return _controller.stream.map((list) {
+      final sorted = List<OrderModel>.from(list);
+      sorted.sort((a, b) => b.orderDate.compareTo(a.orderDate));
+      return sorted;
+    });
   }
 
   @override
@@ -184,11 +190,12 @@ class MockNotificationService implements NotificationRepository {
 
   MockNotificationService() {
     instance = this;
-    _emit();
   }
 
   void _emit() {
-    _controller.add(List.unmodifiable(_db.notifications));
+    if (!_controller.isClosed) {
+      _controller.add(List.unmodifiable(_db.notifications));
+    }
   }
 
   void notify(NotificationModel notif) {
@@ -197,6 +204,8 @@ class MockNotificationService implements NotificationRepository {
 
   @override
   Stream<List<NotificationModel>> getNotifications(String userId) {
+    // Re-emit immediately so new subscribers never miss the current state
+    Future.microtask(_emit);
     return _controller.stream.map(
       (list) => list.where((n) => n.userId == userId).toList(),
     );
@@ -224,16 +233,16 @@ class MockEmployeeService implements EmployeeRepository {
   final MockDatabase _db = MockDatabase();
   final _controller = StreamController<List<UserModel>>.broadcast();
 
-  MockEmployeeService() {
-    _emit();
-  }
-
   void _emit() {
-    _controller.add(List.unmodifiable(_db.users));
+    if (!_controller.isClosed) {
+      _controller.add(List.unmodifiable(_db.users));
+    }
   }
 
   @override
   Stream<List<UserModel>> getEmployees() {
+    // Re-emit immediately so new subscribers never miss the current state
+    Future.microtask(_emit);
     return _controller.stream;
   }
 

@@ -270,6 +270,71 @@ class MockDatabase {
           'https://images.unsplash.com/photo-1564355808539-22fda35bed7e?auto=format&fit=crop&q=80&w=400',
         ],
       ),
+      SnackModel(
+        id: 'snack-11',
+        name: 'Matcha Green Tea Latte',
+        description:
+            'Ceremonial grade matcha whisked with silky steamed milk and sweetened with vanilla syrup.',
+        category: 'Tea',
+        price: 3.20,
+        imageUrl:
+            'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&q=80&w=400',
+        available: true,
+        createdAt: DateTime.now().subtract(const Duration(days: 4)),
+        rating: 4.8,
+        ingredients: const ['Matcha Powder', 'Steamed Milk', 'Vanilla Syrup'],
+        galleryImages: const [],
+      ),
+      SnackModel(
+        id: 'snack-12',
+        name: 'Caramel Cold Brew',
+        description:
+            'Slow-steeped cold brew coffee topped with a splash of sweet cream and a drizzle of rich caramel.',
+        category: 'Coffee',
+        price: 3.95,
+        imageUrl:
+            'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&q=80&w=400',
+        available: true,
+        createdAt: DateTime.now().subtract(const Duration(days: 3)),
+        rating: 4.9,
+        ingredients: const ['Cold Brew Coffee', 'Sweet Cream', 'Caramel Syrup'],
+        galleryImages: const [],
+      ),
+      SnackModel(
+        id: 'snack-13',
+        name: 'Warm Blueberry Muffin',
+        description:
+            'Freshly baked muffin bursting with real blueberries, finished with a golden sugar streusel crust.',
+        category: 'Desserts',
+        price: 2.50,
+        imageUrl:
+            'https://images.unsplash.com/photo-1607958996333-41aef7caefaa?auto=format&fit=crop&q=80&w=400',
+        available: true,
+        createdAt: DateTime.now().subtract(const Duration(days: 2)),
+        rating: 4.6,
+        ingredients: const ['Blueberries', 'Flour', 'Butter', 'Sugar Streusel'],
+        galleryImages: const [],
+      ),
+      SnackModel(
+        id: 'snack-14',
+        name: 'Smashed Avocado Toast',
+        description:
+            'Toasted artisanal sourdough topped with fresh seasoned avocado smash, red pepper flakes, and microgreens.',
+        category: 'Sandwiches',
+        price: 4.80,
+        imageUrl:
+            'https://images.unsplash.com/photo-1541532713592-79a0317b6b77?auto=format&fit=crop&q=80&w=400',
+        available: true,
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        rating: 4.7,
+        ingredients: const [
+          'Sourdough Toast',
+          'Avocado',
+          'Red Pepper Flakes',
+          'Microgreens',
+        ],
+        galleryImages: const [],
+      ),
     ]);
 
     // 3. Initial Orders
@@ -329,6 +394,62 @@ class MockDatabase {
         approvedBy: 'Sara K.',
         remarks: '',
       ),
+      OrderModel(
+        id: 'ord-1005',
+        employeeId: 'emp-101',
+        employeeName: 'Romil Shah',
+        items: [
+          CartItem(snack: snacks[7], quantity: 1), // Caprese Panini
+          CartItem(snack: snacks[8], quantity: 1), // Fresh Orange Juice
+        ],
+        totalAmount: 8.50,
+        status: 'rejected',
+        orderDate: DateTime.now().subtract(const Duration(days: 1)),
+        approvedBy: 'Sara K.',
+        remarks: 'Sorry, Caprese sourdough is out of stock today.',
+      ),
+      OrderModel(
+        id: 'ord-1006',
+        employeeId: 'emp-101',
+        employeeName: 'Romil Shah',
+        items: [
+          CartItem(snack: snacks[2], quantity: 1), // Vanilla Latte
+          CartItem(snack: snacks[9], quantity: 1), // Chocolate Brownie
+        ],
+        totalAmount: 6.75,
+        status: 'completed',
+        orderDate: DateTime.now().subtract(const Duration(days: 3)),
+        approvedBy: 'Sara K.',
+        remarks: '',
+      ),
+      OrderModel(
+        id: 'ord-1007',
+        employeeId: 'emp-101',
+        employeeName: 'Romil Shah',
+        items: [
+          CartItem(snack: snacks[3], quantity: 2), // Iced Americano
+          CartItem(snack: snacks[5], quantity: 1), // Guacamole & Chips
+        ],
+        totalAmount: 10.00,
+        status: 'ready',
+        orderDate: DateTime.now().subtract(const Duration(minutes: 5)),
+        approvedBy: 'Sara K.',
+        remarks: 'Extra ice please.',
+      ),
+      OrderModel(
+        id: 'ord-1008',
+        employeeId: 'emp-101',
+        employeeName: 'Romil Shah',
+        items: [
+          CartItem(snack: snacks[0], quantity: 1), // Masala Chai
+          CartItem(snack: snacks[6], quantity: 1), // Club Sandwich
+        ],
+        totalAmount: 7.45,
+        status: 'preparing',
+        orderDate: DateTime.now().subtract(const Duration(minutes: 10)),
+        approvedBy: 'Sara K.',
+        remarks: 'Extra hot tea.',
+      ),
     ]);
 
     // 4. Initial Notifications
@@ -359,6 +480,24 @@ class MockDatabase {
             'Your Vanilla Latte is ready. Please collect it from the pantry.',
         isRead: false,
         createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
+      ),
+      NotificationModel(
+        id: 'notif-4',
+        userId: 'emp-101',
+        title: 'Order Rejected ❌',
+        message:
+            'Your order ord-1005 has been rejected: Sorry, Caprese sourdough is out of stock today.',
+        isRead: false,
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+      NotificationModel(
+        id: 'notif-5',
+        userId: 'emp-101',
+        title: 'Order Ready for Pickup! 🎉',
+        message:
+            'Your order ord-1007 is ready. Please collect it from the pantry counter.',
+        isRead: false,
+        createdAt: DateTime.now().subtract(const Duration(minutes: 4)),
       ),
     ]);
   }

@@ -53,78 +53,43 @@ class DashboardError extends DashboardState {
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final SnackRepository snackRepository;
   final OrderRepository orderRepository;
-  StreamSubscription? _snackSubscription;
-  StreamSubscription? _orderSubscription;
-  String? _currentUserId;
 
   DashboardBloc({required this.snackRepository, required this.orderRepository})
     : super(DashboardInitial()) {
     on<LoadDashboard>(_onLoadDashboard);
   }
 
-  void _onLoadDashboard(LoadDashboard event, Emitter<DashboardState> emit) {
+  Future<void> _onLoadDashboard(
+    LoadDashboard event,
+    Emitter<DashboardState> emit,
+  ) async {
     emit(DashboardLoading());
-    _currentUserId = event.userId;
 
-    _snackSubscription?.cancel();
-    _orderSubscription?.cancel();
+    try {
+      // Fetch snacks once as a future by taking the first emission
+      final snacks = await snackRepository.getSnacks().first;
 
-    // Setup streams to load dashboard data interactively
-    _snackSubscription = snackRepository.getSnacks().listen((snacks) {
-      _orderSubscription = orderRepository
-          .getOrders(employeeId: _currentUserId)
-          .listen((orders) {
-            // Compute lists
-            final popular = snacks
-                .where((s) => s.rating >= 4.7 && s.available)
-                .toList();
-            final recommended = snacks.where((s) => s.available).toList()
-              ..shuffle();
-            final recent = orders.take(3).toList();
+      // Compute popular and recommended from the snack list
+      final popular = snacks.where((s) => s.rating >= 4.7 && s.available).toList();
+      final recommended = snacks.where((s) => s.available).toList()..shuffle();
 
-            if (!isClosed) {
-              add(
-                _DashboardDataUpdated(
-                  popular: popular,
-                  recommended: recommended.take(4).toList(),
-                  recent: recent,
-                ),
-              );
-            }
-          });
-    });
-
-    on<_DashboardDataUpdated>((event, emit) {
-      emit(
-        DashboardLoaded(
-          popularSnacks: event.popular,
-          recommendedSnacks: event.recommended,
-          recentOrders: event.recent,
-        ),
+      // Now listen to the orders stream and emit state on every update
+      await emit.forEach<List<OrderModel>>(
+        orderRepository.getOrders(employeeId: event.userId),
+        onData: (orders) {
+          final recent = orders.take(3).toList();
+          return DashboardLoaded(
+            popularSnacks: popular,
+            recommendedSnacks: recommended.take(4).toList(),
+            recentOrders: recent,
+          );
+        },
+        onError: (error, stackTrace) {
+          return DashboardError(error.toString());
+        },
       );
-    });
+    } catch (e) {
+      emit(DashboardError(e.toString()));
+    }
   }
-
-  @override
-  Future<void> close() {
-    _snackSubscription?.cancel();
-    _orderSubscription?.cancel();
-    return super.close();
-  }
-}
-
-// Internal private event to feed updates from streams
-class _DashboardDataUpdated extends DashboardEvent {
-  final List<SnackModel> popular;
-  final List<SnackModel> recommended;
-  final List<OrderModel> recent;
-
-  const _DashboardDataUpdated({
-    required this.popular,
-    required this.recommended,
-    required this.recent,
-  });
-
-  @override
-  List<Object?> get props => [popular, recommended, recent];
 }

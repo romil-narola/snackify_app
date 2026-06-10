@@ -66,7 +66,10 @@ class DashboardView extends StatelessWidget {
                 children: [
                   Expanded(
                     child: BentoCard(
-                      gradient: const [Color(0xFFFF6B35), Color(0xFFFF8C61)],
+                      gradient: const [
+                        Color.fromARGB(255, 255, 166, 134),
+                        Color.fromRGBO(255, 209, 192, 1),
+                      ],
                       icon: const Icon(
                         Icons.flash_on_rounded,
                         color: Colors.white,
@@ -82,7 +85,10 @@ class DashboardView extends StatelessWidget {
                   const SizedBox(width: 14),
                   Expanded(
                     child: BentoCard(
-                      gradient: const [Color(0xFF2EC4B6), Color(0xFF0FAD9E)],
+                      gradient: const [
+                        Color.fromARGB(255, 131, 213, 255),
+                        Color.fromARGB(255, 202, 243, 255),
+                      ],
                       icon: const Icon(
                         Icons.receipt_long_rounded,
                         color: Colors.white,
@@ -142,6 +148,47 @@ class DashboardView extends StatelessWidget {
                                 return _buildPopularCard(
                                   context,
                                   state.popularSnacks[index],
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 28),
+                        ],
+
+                        // Quick Reorder Section
+                        if (state.recentOrders.isNotEmpty) ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Quick Reorder 🔄',
+                                style: context.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => onTabChange(3),
+                                child: Text(
+                                  'See All',
+                                  style: context.textTheme.titleSmall?.copyWith(
+                                    color: AppTheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 110,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: state.recentOrders.length,
+                              itemBuilder: (context, index) {
+                                return _buildRecentOrderCard(
+                                  context,
+                                  state.recentOrders[index],
                                 );
                               },
                             ),
@@ -406,6 +453,118 @@ class DashboardView extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRecentOrderCard(BuildContext context, OrderModel order) {
+    final isDark = context.isDarkMode;
+    final itemNames = order.items
+        .map((item) => '${item.quantity}x ${item.snack.name}')
+        .join(', ');
+
+    return Container(
+      width: 290,
+      margin: const EdgeInsets.only(right: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.04),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.receipt_long_rounded,
+              color: AppTheme.primary,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  itemNames,
+                  style: context.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '\$${order.totalAmount.toStringAsFixed(2)}',
+                  style: context.textTheme.bodySmall?.copyWith(
+                    color: AppTheme.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Material(
+            color: AppTheme.primary,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              onTap: () {
+                for (var item in order.items) {
+                  context.read<CartBloc>().add(
+                    AddToCart(item.snack, quantity: item.quantity),
+                  );
+                }
+                ScaffoldMessenger.of(context).clearSnackBars();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Reordered items added to cart!',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    duration: const Duration(seconds: 3),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: AppTheme.success,
+                    action: SnackBarAction(
+                      label: 'VIEW CART',
+                      textColor: Colors.white,
+                      onPressed: () {
+                        onTabChange(2);
+                      },
+                    ),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: const Padding(
+                padding: EdgeInsets.all(10.0),
+                child: Icon(
+                  Icons.refresh_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
