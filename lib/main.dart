@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
           final isDark = state.isDark;
 
           return MaterialApp.router(
-            title: 'Snakify',
+            title: 'Snackify',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
