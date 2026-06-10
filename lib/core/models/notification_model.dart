@@ -47,15 +47,26 @@ class NotificationModel extends Equatable {
   }
 
   factory NotificationModel.fromMap(Map<String, dynamic> map) {
+    DateTime parseDate(dynamic value) {
+      if (value == null) return DateTime.now();
+      // Firestore Timestamp — has a toDate() method
+      if (value is DateTime) return value;
+      try {
+        // Works for both cloud_firestore Timestamp and any object with toDate()
+        return (value as dynamic).toDate() as DateTime;
+      } catch (_) {}
+      // Fallback: ISO string (used by mock data)
+      if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+      return DateTime.now();
+    }
+
     return NotificationModel(
       id: map['id'] ?? '',
       userId: map['userId'] ?? '',
       title: map['title'] ?? '',
       message: map['message'] ?? '',
       isRead: map['isRead'] ?? false,
-      createdAt: map['createdAt'] != null
-          ? DateTime.parse(map['createdAt'])
-          : DateTime.now(),
+      createdAt: parseDate(map['createdAt']),
     );
   }
 

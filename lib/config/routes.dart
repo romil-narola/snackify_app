@@ -36,6 +36,10 @@ class AppRoutes {
           return AddEditSnackScreen(snack: snack);
         },
       ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen(),
+      ),
     ],
     errorBuilder: (context, state) =>
         Scaffold(body: Center(child: Text('Route error: ${state.error}'))),
