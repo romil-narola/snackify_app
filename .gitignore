@@ -23,7 +23,12 @@ migrate.log
 .packages
 .pub-cache/
 .pub/
-/build/
+/build/*
+!/build/reports/
+/build/reports/*
+!/build/reports/problems/
+/build/reports/problems/*
+!/build/reports/problems/problems-report.html
 
 # Android related
 **/android/**/gradle-wrapper.jar
