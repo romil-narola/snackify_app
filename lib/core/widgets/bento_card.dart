@@ -39,6 +39,7 @@ class BentoCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
+              spacing: 10,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 if (icon != null) ...[
@@ -55,10 +56,12 @@ class BentoCard extends StatelessWidget {
                 ] else
                   const SizedBox.shrink(),
                 if (subtitle != null)
-                  Text(
-                    subtitle!,
-                    style: context.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Text(
+                      subtitle!,
+                      style: context.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
               ],
