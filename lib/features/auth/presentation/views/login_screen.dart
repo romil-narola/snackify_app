@@ -130,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Welcome to Snakify',
+                                'Welcome to Snackify',
                                 style: context.textTheme.headlineMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.w800,
@@ -288,7 +288,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: () => _autofill(
-                                  'employee@snakify.com',
+                                  'employee@snackify.com',
                                   'password123',
                                 ),
                                 icon: const Icon(
@@ -315,7 +315,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: () => _autofill(
-                                  'admin@snakify.com',
+                                  'admin@snackify.com',
                                   'password123',
                                 ),
                                 icon: const Icon(

@@ -23,7 +23,7 @@ class MockDatabase {
       UserModel(
         uid: 'emp-101',
         name: 'Romil Shah',
-        email: 'employee@snakify.com',
+        email: 'employee@snackify.com',
         employeeId: 'EMP-9842',
         department: 'Product Design',
         phone: '+1 555-0199',
@@ -36,7 +36,7 @@ class MockDatabase {
       UserModel(
         uid: 'adm-202',
         name: 'Sara K.',
-        email: 'admin@snakify.com',
+        email: 'admin@snackify.com',
         employeeId: 'ADM-0042',
         department: 'Operations',
         phone: '+1 555-0144',
@@ -49,7 +49,7 @@ class MockDatabase {
       UserModel(
         uid: 'emp-102',
         name: 'Alex Rivera',
-        email: 'alex@snakify.com',
+        email: 'alex@snackify.com',
         employeeId: 'EMP-1102',
         department: 'Engineering',
         phone: '+1 555-0177',
@@ -62,7 +62,7 @@ class MockDatabase {
       UserModel(
         uid: 'emp-103',
         name: 'Michael Chen',
-        email: 'michael@snakify.com',
+        email: 'michael@snackify.com',
         employeeId: 'EMP-1103',
         department: 'Marketing',
         phone: '+1 555-0188',

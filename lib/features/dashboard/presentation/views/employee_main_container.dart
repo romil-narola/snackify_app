@@ -51,7 +51,7 @@ class _EmployeeMainContainerState extends State<EmployeeMainContainer> {
             ),
             const SizedBox(width: 8),
             Text(
-              'Snakify',
+              'Snackify',
               style: context.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w900,
               ),

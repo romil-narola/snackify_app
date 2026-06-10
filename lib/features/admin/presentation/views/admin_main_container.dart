@@ -74,7 +74,7 @@ class _AdminMainContainerState extends State<AdminMainContainer> {
                 ),
               ),
               accountName: Text(
-                'Snakify Admin Panel',
+                'Snackify Admin Panel',
                 style: context.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -85,7 +85,7 @@ class _AdminMainContainerState extends State<AdminMainContainer> {
                     ? (context.watch<AuthBloc>().state as Authenticated)
                           .user
                           .email
-                    : 'admin@snakify.com',
+                    : 'admin@snackify.com',
               ),
             ),
             _buildDrawerTile(0, 'Dashboard Overview', Icons.dashboard_outlined),

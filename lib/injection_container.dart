@@ -31,15 +31,15 @@ Future<void> init() async {
     isFirebaseAvailable = true;
     if (kDebugMode) {
       print(
-        'Snakify: Firebase initialized successfully. Running in Cloud Database Mode.',
+        'Snackify: Firebase initialized successfully. Running in Cloud Database Mode.',
       );
     }
   } catch (e) {
     isFirebaseAvailable = false;
     if (kDebugMode) {
-      print('Snakify: Firebase initialization skipped/failed: $e');
+      print('Snackify: Firebase initialization skipped/failed: $e');
       print(
-        'Snakify: Falling back to Local Mock Database Mode. App will be fully interactive.',
+        'Snackify: Falling back to Local Mock Database Mode. App will be fully interactive.',
       );
     }
   }

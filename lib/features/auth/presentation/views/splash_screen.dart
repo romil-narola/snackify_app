@@ -108,7 +108,7 @@ class _SplashScreenState extends State<SplashScreen>
                     const SizedBox(height: 24),
                     // App Name
                     Text(
-                      'Snakify',
+                      'Snackify',
                       style: context.textTheme.headlineLarge?.copyWith(
                         fontWeight: FontWeight.w900,
                         letterSpacing: -1,
