@@ -32,6 +32,22 @@ class AdminDashboardView extends StatelessWidget {
                   ),
                 );
               } else if (state is AdminDashboardLoaded) {
+                final weeklyCounts = List<double>.filled(7, 0.0);
+                for (var order in state.orders) {
+                  if (order.status != 'draft') {
+                    final dayIndex = order.orderDate.weekday - 1;
+                    if (dayIndex >= 0 && dayIndex < 7) {
+                      weeklyCounts[dayIndex] += 1;
+                    }
+                  }
+                }
+                final maxCount = weeklyCounts.reduce((a, b) => a > b ? a : b);
+                final maxY = maxCount < 5 ? 5.0 : (maxCount + 2).toDouble();
+                final lineChartSpots = List.generate(
+                  7,
+                  (i) => FlSpot(i.toDouble(), weeklyCounts[i]),
+                );
+
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -150,7 +166,7 @@ class AdminDashboardView extends StatelessWidget {
 
                     // Trends charts inside a Bento container
                     BentoCard(
-                      height: 220,
+                      height: 250,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -174,24 +190,117 @@ class AdminDashboardView extends StatelessWidget {
                           Expanded(
                             child: LineChart(
                               LineChartData(
-                                gridData: const FlGridData(show: false),
-                                titlesData: const FlTitlesData(show: false),
                                 borderData: FlBorderData(show: false),
+                                gridData: FlGridData(
+                                  show: true,
+                                  drawVerticalLine: false,
+                                  getDrawingHorizontalLine: (value) {
+                                    return FlLine(
+                                      color: Colors.grey.withValues(
+                                        alpha: 0.15,
+                                      ),
+                                      strokeWidth: 1,
+                                    );
+                                  },
+                                ),
+                                lineTouchData: LineTouchData(
+                                  touchTooltipData: LineTouchTooltipData(
+                                    tooltipRoundedRadius: 8,
+                                    tooltipBgColor: AppTheme.primary.withValues(
+                                      alpha: 0.9,
+                                    ),
+                                    getTooltipItems: (touchedSpots) {
+                                      return touchedSpots.map((spot) {
+                                        return LineTooltipItem(
+                                          '${spot.y.toInt()} orders',
+                                          const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11,
+                                          ),
+                                        );
+                                      }).toList();
+                                    },
+                                  ),
+                                ),
+                                titlesData: FlTitlesData(
+                                  show: true,
+                                  rightTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  topTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  leftTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      reservedSize: 28,
+                                      interval: maxY <= 5
+                                          ? 1.0
+                                          : (maxY <= 10
+                                                ? 2.0
+                                                : (maxY / 5).roundToDouble()),
+                                      getTitlesWidget: (value, meta) {
+                                        if (value % 1 != 0) {
+                                          return const SizedBox.shrink();
+                                        }
+                                        return SideTitleWidget(
+                                          axisSide: meta.axisSide,
+                                          child: Text(
+                                            value.toInt().toString(),
+                                            style: context.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.grey,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  bottomTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      reservedSize: 22,
+                                      getTitlesWidget: (value, meta) {
+                                        const days = [
+                                          'Mon',
+                                          'Tue',
+                                          'Wed',
+                                          'Thu',
+                                          'Fri',
+                                          'Sat',
+                                          'Sun',
+                                        ];
+                                        final index = value.toInt();
+                                        String label = '';
+                                        if (index >= 0 && index < days.length) {
+                                          label = days[index];
+                                        }
+                                        return SideTitleWidget(
+                                          axisSide: meta.axisSide,
+                                          child: Text(
+                                            label,
+                                            style: context.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.grey,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
                                 minX: 0,
                                 maxX: 6,
                                 minY: 0,
-                                maxY: 10,
+                                maxY: maxY,
                                 lineBarsData: [
                                   LineChartBarData(
-                                    spots: const [
-                                      FlSpot(0, 3),
-                                      FlSpot(1, 4),
-                                      FlSpot(2, 2.5),
-                                      FlSpot(3, 7.5),
-                                      FlSpot(4, 6),
-                                      FlSpot(5, 8.5),
-                                      FlSpot(6, 9),
-                                    ],
+                                    spots: lineChartSpots,
                                     isCurved: true,
                                     color: AppTheme.primary,
                                     barWidth: 3,

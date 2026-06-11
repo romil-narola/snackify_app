@@ -154,7 +154,7 @@ class _AdminReportsViewState extends State<AdminReportsView> {
 
                       // Sales Bar Chart
                       BentoCard(
-                        height: 250,
+                        height: 280,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -164,13 +164,135 @@ class _AdminReportsViewState extends State<AdminReportsView> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 30),
                             Expanded(
                               child: BarChart(
                                 BarChartData(
                                   borderData: FlBorderData(show: false),
-                                  gridData: const FlGridData(show: false),
-                                  titlesData: const FlTitlesData(show: false),
+                                  gridData: FlGridData(
+                                    show: true,
+                                    drawVerticalLine: false,
+                                    getDrawingHorizontalLine: (value) {
+                                      return FlLine(
+                                        color: Colors.grey.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        strokeWidth: 1,
+                                      );
+                                    },
+                                  ),
+                                  barTouchData: BarTouchData(
+                                    touchTooltipData: BarTouchTooltipData(
+                                      tooltipRoundedRadius: 10,
+                                      tooltipBgColor: AppTheme.primary
+                                          .withValues(alpha: 0.9),
+                                      getTooltipItem:
+                                          (group, groupIndex, rod, rodIndex) {
+                                            return BarTooltipItem(
+                                              '\$${rod.toY.toStringAsFixed(2)}',
+                                              const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                            );
+                                          },
+                                    ),
+                                  ),
+                                  titlesData: FlTitlesData(
+                                    show: true,
+                                    rightTitles: const AxisTitles(
+                                      sideTitles: SideTitles(showTitles: false),
+                                    ),
+                                    topTitles: const AxisTitles(
+                                      sideTitles: SideTitles(showTitles: false),
+                                    ),
+                                    leftTitles: AxisTitles(
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        reservedSize: 42,
+                                        getTitlesWidget: (value, meta) {
+                                          return SideTitleWidget(
+                                            axisSide: meta.axisSide,
+                                            child: Text(
+                                              '\$${value.toInt()}',
+                                              style: context.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.grey,
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    bottomTitles: AxisTitles(
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        reservedSize: 30,
+                                        getTitlesWidget: (value, meta) {
+                                          final index = value.toInt();
+                                          String label = '';
+                                          if (_selectedRange == 'daily') {
+                                            const hours = [
+                                              '9 AM',
+                                              '10 AM',
+                                              '11 AM',
+                                              '12 PM',
+                                              '1 PM',
+                                              '2 PM',
+                                              '3 PM',
+                                            ];
+                                            if (index >= 0 &&
+                                                index < hours.length) {
+                                              label = hours[index];
+                                            }
+                                          } else if (_selectedRange ==
+                                              'weekly') {
+                                            const days = [
+                                              'Mon',
+                                              'Tue',
+                                              'Wed',
+                                              'Thu',
+                                              'Fri',
+                                              'Sat',
+                                              'Sun',
+                                            ];
+                                            if (index >= 0 &&
+                                                index < days.length) {
+                                              label = days[index];
+                                            }
+                                          } else {
+                                            const months = [
+                                              'Jan',
+                                              'Feb',
+                                              'Mar',
+                                              'Apr',
+                                              'May',
+                                              'Jun',
+                                            ];
+                                            if (index >= 0 &&
+                                                index < months.length) {
+                                              label = months[index];
+                                            }
+                                          }
+                                          return SideTitleWidget(
+                                            axisSide: meta.axisSide,
+                                            child: Text(
+                                              label,
+                                              style: context.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.grey,
+                                                  ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
                                   barGroups: List.generate(
                                     state.chartData.length,
                                     (idx) {
@@ -199,56 +321,87 @@ class _AdminReportsViewState extends State<AdminReportsView> {
 
                       // Category breakdown Pie Chart
                       BentoCard(
-                        height: 220,
+                        height: 200,
                         child: Row(
                           children: [
                             Expanded(
                               flex: 3,
-                              child: PieChart(
-                                PieChartData(
-                                  sectionsSpace: 4,
-                                  centerSpaceRadius: 40,
-                                  sections: _buildPieSections(
-                                    state.categorySales,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  PieChart(
+                                    PieChartData(
+                                      sectionsSpace: 4,
+                                      centerSpaceRadius: 46,
+                                      sections: _buildPieSections(
+                                        state.categorySales,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'TOTAL',
+                                        style: context.textTheme.labelSmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.grey,
+                                              fontSize: 9,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '\$${state.totalSalesAmount.toStringAsFixed(0)}',
+                                        style: context.textTheme.titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 13,
+                                              color: AppTheme.primary,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              flex: 2,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: state.categorySales.entries.map((
-                                  entry,
-                                ) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 4,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 10,
-                                          height: 10,
-                                          color: _getCategoryColor(entry.key),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            '${entry.key} (\$${entry.value.toStringAsFixed(0)})',
-                                            style: context.textTheme.bodySmall
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                            overflow: TextOverflow.ellipsis,
+                              flex: 3,
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: state.categorySales.entries.map((
+                                    entry,
+                                  ) {
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 4,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 10,
+                                            height: 10,
+                                            color: _getCategoryColor(entry.key),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              '${entry.key} (\$${entry.value.toStringAsFixed(0)})',
+                                              style: context.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
                               ),
                             ),
                           ],
@@ -277,16 +430,28 @@ class _AdminReportsViewState extends State<AdminReportsView> {
       Colors.purple,
       Colors.orange,
     ];
+
+    double total = sales.values.fold(0, (sum, val) => sum + val);
+    if (total == 0) total = 1;
+
     int idx = 0;
 
     return sales.entries.map((entry) {
       final color = colors[idx % colors.length];
       idx++;
+      final pct = (entry.value / total) * 100;
+
       return PieChartSectionData(
         value: entry.value,
         color: color,
-        radius: 20,
-        showTitle: false,
+        radius: 24,
+        showTitle: pct > 8,
+        title: '${pct.toStringAsFixed(0)}%',
+        titleStyle: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
       );
     }).toList();
   }
