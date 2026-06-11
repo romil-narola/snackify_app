@@ -1,5 +1,4 @@
 import '../../../../core/common_imports.dart';
-import '../../../../core/mock/mock_database.dart';
 
 class CartView extends StatefulWidget {
   const CartView({super.key});
@@ -17,11 +16,11 @@ class _CartViewState extends State<CartView> {
     super.dispose();
   }
 
-  void _checkout(BuildContext context, CartState state) {
+  void _checkout(BuildContext context, CartState state, {String? status}) {
     if (state.items.isEmpty) return;
 
     final db = MockDatabase();
-    if (db.isCombineOption) {
+    if (db.isCombineOption && status != 'draft') {
       showDialog(
         context: context,
         builder: (dialogCtx) => AlertDialog(
@@ -37,7 +36,7 @@ class _CartViewState extends State<CartView> {
             TextButton(
               onPressed: () {
                 Navigator.pop(dialogCtx);
-                _executeCheckout(context, state);
+                _executeCheckout(context, state, status: status);
               },
               child: const Text('Proceed'),
             ),
@@ -45,17 +44,18 @@ class _CartViewState extends State<CartView> {
         ),
       );
     } else {
-      _executeCheckout(context, state);
+      _executeCheckout(context, state, status: status);
     }
   }
 
-  void _executeCheckout(BuildContext context, CartState state) {
+  void _executeCheckout(BuildContext context, CartState state, {String? status}) {
     // Dispatch place order event
     context.read<OrderBloc>().add(
       PlaceOrder(
         items: state.items,
         totalAmount: state.finalAmount,
         remarks: _remarksController.text.trim(),
+        status: status,
       ),
     );
 
@@ -64,6 +64,7 @@ class _CartViewState extends State<CartView> {
     _remarksController.clear();
 
     // Show dynamic success dialogue
+    final isDraft = status == 'draft';
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -77,18 +78,19 @@ class _CartViewState extends State<CartView> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppTheme.success.withValues(alpha: 0.15),
+                  color: (isDraft ? Colors.blueGrey : AppTheme.success)
+                      .withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check_circle_outline_rounded,
-                  color: AppTheme.success,
+                child: Icon(
+                  isDraft ? Icons.drafts_outlined : Icons.check_circle_outline_rounded,
+                  color: isDraft ? Colors.blueGrey : AppTheme.success,
                   size: 54,
                 ),
               ),
               const SizedBox(height: 24),
               Text(
-                'Order Placed!',
+                isDraft ? 'Draft Saved!' : 'Order Placed!',
                 style: context.textTheme.titleLarge?.copyWith(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -96,7 +98,9 @@ class _CartViewState extends State<CartView> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Your snack request has been queued. You will be notified once the kitchen updates the status.',
+                isDraft
+                    ? 'Your snack request has been saved as a draft. You can view or submit it from your tracker.'
+                    : 'Your snack request has been placed. You will be notified once the kitchen updates the status.',
                 textAlign: TextAlign.center,
                 style: context.textTheme.bodyMedium?.copyWith(height: 1.4),
               ),
@@ -432,21 +436,70 @@ class _CartViewState extends State<CartView> {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: MockDatabase().isOrderingOpen()
-                            ? () => _checkout(context, state)
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: MockDatabase().isOrderingOpen()
-                              ? AppTheme.primary
-                              : Colors.grey,
+                      if (MockDatabase().isStatusWise) ...[
+                        ElevatedButton(
+                          onPressed: MockDatabase().isOrderingOpen()
+                              ? () => _checkout(context, state, status: 'pending')
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: MockDatabase().isOrderingOpen()
+                                ? AppTheme.primary
+                                : Colors.grey,
+                          ),
+                          child: Text(
+                            MockDatabase().isOrderingOpen()
+                                ? 'Place Request'
+                                : 'Ordering Closed',
+                          ),
                         ),
-                        child: Text(
-                          MockDatabase().isOrderingOpen()
-                              ? 'Place Request'
-                              : 'Ordering Closed',
+                      ] else ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () =>
+                                    _checkout(context, state, status: 'draft'),
+                                style: OutlinedButton.styleFrom(
+                                  side: const BorderSide(
+                                    color: AppTheme.primary,
+                                    width: 1.5,
+                                  ),
+                                  foregroundColor: AppTheme.primary,
+                                  minimumSize: const Size(0, 50),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text('Save as Draft'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: MockDatabase().isOrderingOpen()
+                                    ? () => _checkout(
+                                          context,
+                                          state,
+                                          status: 'completed',
+                                        )
+                                    : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor:
+                                      MockDatabase().isOrderingOpen()
+                                          ? AppTheme.primary
+                                          : Colors.grey,
+                                  minimumSize: const Size(0, 50),
+                                ),
+                                child: Text(
+                                  MockDatabase().isOrderingOpen()
+                                      ? 'Complete Order'
+                                      : 'Ordering Closed',
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                      ]
                     ],
                   ),
                 ),

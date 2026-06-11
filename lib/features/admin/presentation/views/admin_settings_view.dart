@@ -1,5 +1,4 @@
 import '../../../../core/common_imports.dart';
-import '../../../../core/mock/mock_database.dart';
 
 class AdminSettingsView extends StatefulWidget {
   const AdminSettingsView({super.key});
@@ -12,6 +11,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
   late bool _isCombineOption;
   late TimeOfDay _startTime;
   late TimeOfDay _cutoffTime;
+  late bool _isStatusWise;
 
   @override
   void initState() {
@@ -22,6 +22,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
   void _loadCurrentSettings() {
     final db = MockDatabase();
     _isCombineOption = db.isCombineOption;
+    _isStatusWise = db.isStatusWise;
 
     _startTime = _parseTimeString(
       db.orderStartTime,
@@ -98,6 +99,7 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
         isCombineOption: _isCombineOption,
         startTime: startStr,
         cutoffTime: cutoffStr,
+        isStatusWise: _isStatusWise,
       ),
     );
 
@@ -172,6 +174,44 @@ class _AdminSettingsViewState extends State<AdminSettingsView> {
                     color: AppTheme.primary,
                     isSelected: _isCombineOption,
                     onTap: () => setState(() => _isCombineOption = true),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // Workflow Mode Selection Section
+            Text(
+              'Workflow Mode',
+              style: context.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            GlassContainer(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _buildModeTile(
+                    title: 'Status-Wise Workflow',
+                    description:
+                        'Orders progress step-by-step (Pending ➔ Approved ➔ Preparing ➔ Ready ➔ Completed).',
+                    icon: Icons.alt_route_rounded,
+                    color: AppTheme.primary,
+                    isSelected: _isStatusWise,
+                    onTap: () => setState(() => _isStatusWise = true),
+                  ),
+                  const SizedBox(height: 12),
+                  const Divider(),
+                  const SizedBox(height: 12),
+                  _buildModeTile(
+                    title: 'Direct Mode (Without Status-Wise)',
+                    description:
+                        'Orders bypass kitchen status pipeline. Employees save as Draft or set directly to Completed.',
+                    icon: Icons.bolt_rounded,
+                    color: AppTheme.secondary,
+                    isSelected: !_isStatusWise,
+                    onTap: () => setState(() => _isStatusWise = false),
                   ),
                 ],
               ),

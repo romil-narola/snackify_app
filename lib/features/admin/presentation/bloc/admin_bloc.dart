@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
 import '../../../../core/common_imports.dart';
-import '../../../../core/mock/mock_database.dart';
 
 // --- Events ---
 abstract class AdminEvent extends Equatable {
@@ -65,13 +64,15 @@ class AdminUpdateSettings extends AdminEvent {
   final bool isCombineOption;
   final String startTime;
   final String cutoffTime;
+  final bool isStatusWise;
   const AdminUpdateSettings({
     required this.isCombineOption,
     required this.startTime,
     required this.cutoffTime,
+    required this.isStatusWise,
   });
   @override
-  List<Object?> get props => [isCombineOption, startTime, cutoffTime];
+  List<Object?> get props => [isCombineOption, startTime, cutoffTime, isStatusWise];
 }
 
 // --- States ---
@@ -95,6 +96,7 @@ class AdminDashboardLoaded extends AdminState {
   final bool isCombineOption;
   final String orderStartTime;
   final String orderCutoffTime;
+  final bool isStatusWise;
 
   const AdminDashboardLoaded({
     required this.snacks,
@@ -106,6 +108,7 @@ class AdminDashboardLoaded extends AdminState {
     required this.isCombineOption,
     required this.orderStartTime,
     required this.orderCutoffTime,
+    required this.isStatusWise,
   });
 
   @override
@@ -119,6 +122,7 @@ class AdminDashboardLoaded extends AdminState {
     isCombineOption,
     orderStartTime,
     orderCutoffTime,
+    isStatusWise,
   ];
 }
 
@@ -253,6 +257,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         isCombineOption: db.isCombineOption,
         orderStartTime: db.orderStartTime,
         orderCutoffTime: db.orderCutoffTime,
+        isStatusWise: db.isStatusWise,
       ),
     );
   }
@@ -342,6 +347,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       db.isCombineOption = event.isCombineOption;
       db.orderStartTime = event.startTime;
       db.orderCutoffTime = event.cutoffTime;
+      db.isStatusWise = event.isStatusWise;
       emit(AdminActionSuccess());
       add(LoadAdminDashboard());
     } catch (e) {

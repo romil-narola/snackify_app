@@ -15,6 +15,7 @@ class MockDatabase {
   bool isCombineOption = true;
   String orderStartTime = "09:00";
   String orderCutoffTime = "17:00";
+  bool isStatusWise = true;
 
   bool isOrderingOpen() {
     try {

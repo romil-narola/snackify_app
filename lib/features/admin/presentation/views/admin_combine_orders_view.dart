@@ -11,12 +11,22 @@ class AdminCombineOrdersView extends StatelessWidget {
     final Map<String, _CombinedSnackGroup> grouped = {};
 
     // Filter by finality based on whether we are viewing history
+    final db = MockDatabase();
     final filteredOrders = orders.where((o) {
       final status = o.status.toLowerCase();
-      if (isHistory) {
-        return status == 'completed' || status == 'rejected';
+      if (db.isStatusWise) {
+        if (status == 'draft') return false;
+        if (isHistory) {
+          return status == 'completed' || status == 'rejected';
+        } else {
+          return status != 'completed' && status != 'rejected';
+        }
       } else {
-        return status != 'completed' && status != 'rejected';
+        if (isHistory) {
+          return status == 'completed' || status == 'rejected';
+        } else {
+          return status == 'draft';
+        }
       }
     }).toList();
 
@@ -51,14 +61,20 @@ class AdminCombineOrdersView extends StatelessWidget {
       bool canUpdate = false;
       final currentStatus = order.status.toLowerCase();
 
-      if (nextStatus == 'approved' || nextStatus == 'rejected') {
-        canUpdate = currentStatus == 'pending';
-      } else if (nextStatus == 'preparing') {
-        canUpdate = currentStatus == 'approved' || currentStatus == 'pending';
-      } else if (nextStatus == 'ready') {
-        canUpdate = currentStatus == 'preparing';
-      } else if (nextStatus == 'completed') {
-        canUpdate = currentStatus == 'ready';
+      if (MockDatabase().isStatusWise) {
+        if (nextStatus == 'approved' || nextStatus == 'rejected') {
+          canUpdate = currentStatus == 'pending';
+        } else if (nextStatus == 'preparing') {
+          canUpdate = currentStatus == 'approved' || currentStatus == 'pending';
+        } else if (nextStatus == 'ready') {
+          canUpdate = currentStatus == 'preparing';
+        } else if (nextStatus == 'completed') {
+          canUpdate = currentStatus == 'ready';
+        }
+      } else {
+        if (nextStatus == 'completed') {
+          canUpdate = currentStatus == 'draft';
+        }
       }
 
       if (canUpdate) {
@@ -93,6 +109,7 @@ class AdminCombineOrdersView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
+    final db = MockDatabase();
 
     return DefaultTabController(
       length: 2,
@@ -104,9 +121,17 @@ class AdminCombineOrdersView extends StatelessWidget {
               labelColor: AppTheme.primary,
               unselectedLabelColor: isDark ? Colors.white60 : Colors.black54,
               labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-              tabs: const [
-                Tab(text: 'Active Aggregations'),
-                Tab(text: 'Combined History'),
+              tabs: [
+                Tab(
+                  text: db.isStatusWise
+                      ? 'Active Aggregations'
+                      : 'Draft Aggregations',
+                ),
+                Tab(
+                  text: db.isStatusWise
+                      ? 'Combined History'
+                      : 'Completed History',
+                ),
               ],
             ),
             const Divider(height: 1),
@@ -126,6 +151,7 @@ class AdminCombineOrdersView extends StatelessWidget {
 
   Widget _buildGroupedList(BuildContext context, {required bool isHistory}) {
     final isDark = context.isDarkMode;
+    final db = MockDatabase();
 
     return BlocBuilder<AdminBloc, AdminState>(
       builder: (context, state) {
@@ -147,8 +173,12 @@ class AdminCombineOrdersView extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     isHistory
-                        ? 'No past aggregated history'
-                        : 'No active orders to combine',
+                        ? (db.isStatusWise
+                              ? 'No past aggregated history'
+                              : 'No completed history')
+                        : (db.isStatusWise
+                              ? 'No active orders to combine'
+                              : 'No draft orders to combine'),
                     style: context.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -156,8 +186,12 @@ class AdminCombineOrdersView extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     isHistory
-                        ? 'Completed combined orders will appear here'
-                        : 'Aggregated view will populate when orders are placed',
+                        ? (db.isStatusWise
+                              ? 'Completed combined orders will appear here'
+                              : 'Completed requests will appear here')
+                        : (db.isStatusWise
+                              ? 'Aggregated view will populate when orders are placed'
+                              : 'Aggregated view of employee drafts will show here'),
                     style: context.textTheme.bodyMedium,
                   ),
                 ],
@@ -406,78 +440,102 @@ class AdminCombineOrdersView extends StatelessWidget {
                           final hasReady = group.orders.any(
                             (o) => o.status.toLowerCase() == 'ready',
                           );
-
                           final List<Widget> actionButtons = [];
+                          final db = MockDatabase();
 
-                          if (hasPending) {
-                            actionButtons.add(
-                              _buildCompactButton(
-                                icon: Icons.close_rounded,
-                                label: 'Reject',
-                                color: AppTheme.error,
-                                isElevated: false,
-                                onPressed: () => _batchUpdateStatus(
-                                  context,
-                                  group,
-                                  'rejected',
+                          if (!db.isStatusWise) {
+                            final hasDraft = group.orders.any(
+                              (o) => o.status.toLowerCase() == 'draft',
+                            );
+                            if (hasDraft) {
+                              actionButtons.add(
+                                _buildCompactButton(
+                                  icon: Icons.inventory_rounded,
+                                  label: 'Complete Batch',
+                                  color: AppTheme.success,
+                                  isElevated: true,
+                                  onPressed: () => _batchUpdateStatus(
+                                    context,
+                                    group,
+                                    'completed',
+                                  ),
                                 ),
-                              ),
-                            );
-                            actionButtons.add(
-                              _buildCompactButton(
-                                icon: Icons.check_rounded,
-                                label: 'Approve',
-                                color: Colors.blue,
-                                isElevated: true,
-                                onPressed: () => _batchUpdateStatus(
-                                  context,
-                                  group,
-                                  'approved',
+                              );
+                            }
+                          } else {
+                            if (hasPending) {
+                              actionButtons.add(
+                                _buildCompactButton(
+                                  icon: Icons.close_rounded,
+                                  label: 'Reject',
+                                  color: AppTheme.error,
+                                  isElevated: false,
+                                  onPressed: () => _batchUpdateStatus(
+                                    context,
+                                    group,
+                                    'rejected',
+                                  ),
                                 ),
-                              ),
-                            );
-                          }
-                          if (hasApproved) {
-                            actionButtons.add(
-                              _buildCompactButton(
-                                icon: Icons.soup_kitchen_rounded,
-                                label: 'Prepare',
-                                color: Colors.purple,
-                                isElevated: true,
-                                onPressed: () => _batchUpdateStatus(
-                                  context,
-                                  group,
-                                  'preparing',
+                              );
+                              actionButtons.add(
+                                _buildCompactButton(
+                                  icon: Icons.check_rounded,
+                                  label: 'Approve',
+                                  color: Colors.blue,
+                                  isElevated: true,
+                                  onPressed: () => _batchUpdateStatus(
+                                    context,
+                                    group,
+                                    'approved',
+                                  ),
                                 ),
-                              ),
-                            );
-                          }
-                          if (hasPreparing) {
-                            actionButtons.add(
-                              _buildCompactButton(
-                                icon: Icons.done_all_rounded,
-                                label: 'Ready',
-                                color: AppTheme.secondary,
-                                isElevated: true,
-                                onPressed: () =>
-                                    _batchUpdateStatus(context, group, 'ready'),
-                              ),
-                            );
-                          }
-                          if (hasReady) {
-                            actionButtons.add(
-                              _buildCompactButton(
-                                icon: Icons.inventory_rounded,
-                                label: 'Complete',
-                                color: AppTheme.success,
-                                isElevated: true,
-                                onPressed: () => _batchUpdateStatus(
-                                  context,
-                                  group,
-                                  'completed',
+                              );
+                            }
+                            if (hasApproved) {
+                              actionButtons.add(
+                                _buildCompactButton(
+                                  icon: Icons.soup_kitchen_rounded,
+                                  label: 'Prepare',
+                                  color: Colors.purple,
+                                  isElevated: true,
+                                  onPressed: () => _batchUpdateStatus(
+                                    context,
+                                    group,
+                                    'preparing',
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }
+                            if (hasPreparing) {
+                              actionButtons.add(
+                                _buildCompactButton(
+                                  icon: Icons.done_all_rounded,
+                                  label: 'Ready',
+                                  color: AppTheme.secondary,
+                                  isElevated: true,
+                                  onPressed: () => _batchUpdateStatus(
+                                    context,
+                                    group,
+                                    'ready',
+                                  ),
+                                ),
+                              );
+                            }
+                            if (hasReady) {
+                              actionButtons.add(
+                                _buildCompactButton(
+                                  icon: Icons.inventory_rounded,
+                                  label: 'Complete',
+                                  color: AppTheme.success,
+                                  isElevated: true,
+                                  onPressed: () => _batchUpdateStatus(
+                                    context,
+                                    group,
+                                    'completed',
+                                  ),
+                                ),
+                              );
+                            }
                           }
 
                           return actionButtons;
@@ -497,6 +555,9 @@ class AdminCombineOrdersView extends StatelessWidget {
   Widget _getStatusBadge(String status) {
     Color color;
     switch (status.toLowerCase()) {
+      case 'draft':
+        color = Colors.blueGrey;
+        break;
       case 'pending':
         color = Colors.orange;
         break;

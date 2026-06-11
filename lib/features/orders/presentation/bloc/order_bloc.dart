@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
 import '../../../../core/common_imports.dart';
-import '../../../../core/mock/mock_database.dart';
 
 // --- Events ---
 abstract class OrderEvent extends Equatable {
@@ -21,13 +20,22 @@ class PlaceOrder extends OrderEvent {
   final List<CartItem> items;
   final double totalAmount;
   final String remarks;
+  final String? status;
   const PlaceOrder({
     required this.items,
     required this.totalAmount,
     required this.remarks,
+    this.status,
   });
   @override
-  List<Object?> get props => [items, totalAmount, remarks];
+  List<Object?> get props => [items, totalAmount, remarks, status];
+}
+
+class SubmitDraftOrder extends OrderEvent {
+  final String orderId;
+  const SubmitDraftOrder(this.orderId);
+  @override
+  List<Object?> get props => [orderId];
 }
 
 // --- States ---
@@ -67,7 +75,8 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     : super(OrderInitial()) {
     on<LoadOrders>(_onLoadOrders);
     on<PlaceOrder>(_onPlaceOrder);
-    on(_onOrdersUpdated);
+    on<SubmitDraftOrder>(_onSubmitDraftOrder);
+    on<_OrdersDataReceived>(_onOrdersUpdated);
   }
 
   void _onLoadOrders(LoadOrders event, Emitter<OrderState> emit) {
@@ -108,13 +117,14 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
 
       final orderId =
           'ORD-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
+      final status = event.status ?? (db.isStatusWise ? 'pending' : 'completed');
       final newOrder = OrderModel(
         id: orderId,
         employeeId: user.uid,
         employeeName: user.name,
         items: event.items,
         totalAmount: event.totalAmount,
-        status: 'pending',
+        status: status,
         orderDate: DateTime.now(),
         remarks: event.remarks,
       );
@@ -123,6 +133,34 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       emit(OrderPlaceSuccess());
 
       // Reload orders
+      add(LoadOrders(user.uid));
+    } catch (e) {
+      emit(OrderOperationError(e.toString()));
+    }
+  }
+
+  Future<void> _onSubmitDraftOrder(
+    SubmitDraftOrder event,
+    Emitter<OrderState> emit,
+  ) async {
+    emit(OrderLoading());
+    try {
+      final db = MockDatabase();
+      final targetStatus = db.isStatusWise ? 'pending' : 'completed';
+      final user = await authRepository.getCurrentUser();
+      if (user == null) {
+        emit(
+          const OrderOperationError('User session expired. Pls login again.'),
+        );
+        return;
+      }
+      await orderRepository.updateOrderStatus(
+        event.orderId,
+        targetStatus,
+        approvedBy: db.isStatusWise ? '' : 'System Auto-Approval',
+        remarks: 'Submitted from draft.',
+      );
+      emit(OrderPlaceSuccess());
       add(LoadOrders(user.uid));
     } catch (e) {
       emit(OrderOperationError(e.toString()));

@@ -11,19 +11,33 @@ class AdminOrdersView extends StatefulWidget {
 class _AdminOrdersViewState extends State<AdminOrdersView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> _statuses = [
-    'All',
-    'Pending',
-    'Approved',
-    'Preparing',
-    'Ready',
-    'Completed',
-    'Rejected',
-  ];
+  late List<String> _statuses;
 
   @override
   void initState() {
     super.initState();
+    _initStatuses();
+  }
+
+  void _initStatuses() {
+    final db = MockDatabase();
+    if (db.isStatusWise) {
+      _statuses = [
+        'All',
+        'Pending',
+        'Approved',
+        'Preparing',
+        'Ready',
+        'Completed',
+        'Rejected',
+      ];
+    } else {
+      _statuses = [
+        'All',
+        'Draft',
+        'Completed',
+      ];
+    }
     _tabController = TabController(
       length: _statuses.length,
       vsync: this,
@@ -62,6 +76,28 @@ class _AdminOrdersViewState extends State<AdminOrdersView>
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
+    final db = MockDatabase();
+    final expectedStatuses = db.isStatusWise
+        ? [
+            'All',
+            'Pending',
+            'Approved',
+            'Preparing',
+            'Ready',
+            'Completed',
+            'Rejected',
+          ]
+        : [
+            'All',
+            'Draft',
+            'Completed',
+          ];
+
+    if (_statuses.length != expectedStatuses.length) {
+      _statuses = expectedStatuses;
+      _tabController.dispose();
+      _tabController = TabController(length: _statuses.length, vsync: this);
+    }
 
     return Scaffold(
       body: Column(
@@ -264,6 +300,19 @@ class _AdminOrdersViewState extends State<AdminOrdersView>
       ];
     }
 
+    if (status == 'draft') {
+      return [
+        Text(
+          'Employee Draft',
+          style: context.textTheme.labelLarge?.copyWith(
+            color: Colors.blueGrey,
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
+        ),
+      ];
+    }
+
     List<Widget> buttons = [];
 
     // Reject Button (Available for Pending & Approved)
@@ -333,6 +382,8 @@ class _AdminOrdersViewState extends State<AdminOrdersView>
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'draft':
+        return Colors.blueGrey;
       case 'pending':
         return Colors.orange;
       case 'approved':

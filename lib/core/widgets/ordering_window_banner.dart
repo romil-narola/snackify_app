@@ -1,6 +1,5 @@
 import 'dart:async';
 import '../common_imports.dart';
-import '../mock/mock_database.dart';
 
 class OrderingWindowBanner extends StatefulWidget {
   final EdgeInsetsGeometry? margin;

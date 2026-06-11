@@ -10,26 +10,41 @@ class OrdersHistoryView extends StatefulWidget {
 class _OrdersHistoryViewState extends State<OrdersHistoryView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final List<String> _statuses = [
-    'All',
-    'Pending',
-    'Approved',
-    'Preparing',
-    'Ready',
-    'Completed',
-    'Rejected',
-  ];
+  late List<String> _statuses;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _statuses.length, vsync: this);
+    _initStatuses();
 
     // Load orders
     final authState = context.read<AuthBloc>().state;
     if (authState is Authenticated) {
       context.read<OrderBloc>().add(LoadOrders(authState.user.uid));
     }
+  }
+
+  void _initStatuses() {
+    final db = MockDatabase();
+    if (db.isStatusWise) {
+      _statuses = [
+        'All',
+        'Draft',
+        'Pending',
+        'Approved',
+        'Preparing',
+        'Ready',
+        'Completed',
+        'Rejected',
+      ];
+    } else {
+      _statuses = [
+        'All',
+        'Draft',
+        'Completed',
+      ];
+    }
+    _tabController = TabController(length: _statuses.length, vsync: this);
   }
 
   @override
@@ -52,6 +67,29 @@ class _OrdersHistoryViewState extends State<OrdersHistoryView>
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
+    final db = MockDatabase();
+    final expectedStatuses = db.isStatusWise
+        ? [
+            'All',
+            'Draft',
+            'Pending',
+            'Approved',
+            'Preparing',
+            'Ready',
+            'Completed',
+            'Rejected',
+          ]
+        : [
+            'All',
+            'Draft',
+            'Completed',
+          ];
+
+    if (_statuses.length != expectedStatuses.length) {
+      _statuses = expectedStatuses;
+      _tabController.dispose();
+      _tabController = TabController(length: _statuses.length, vsync: this);
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -268,20 +306,52 @@ class _OrdersHistoryViewState extends State<OrdersHistoryView>
                       const SizedBox(height: 16),
                     ],
                     // Action tracking button
-                    ElevatedButton.icon(
-                      onPressed: () => _showTrackingTimeline(context, order),
-                      icon: const Icon(
-                        Icons.location_searching_rounded,
-                        size: 18,
-                      ),
-                      label: const Text('Track Order Live'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primary.withValues(
-                          alpha: 0.15,
+                    if (order.status.toLowerCase() == 'draft') ...[
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          context.read<OrderBloc>().add(SubmitDraftOrder(order.id));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                MockDatabase().isStatusWise
+                                    ? 'Draft order submitted for approval!'
+                                    : 'Draft order completed directly!',
+                              ),
+                              backgroundColor: AppTheme.success,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.send_rounded,
+                          size: 18,
                         ),
-                        foregroundColor: AppTheme.primary,
+                        label: Text(
+                          MockDatabase().isStatusWise
+                              ? 'Submit Order (Pending Approval)'
+                              : 'Complete Order Directly',
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary,
+                          foregroundColor: Colors.white,
+                        ),
                       ),
-                    ),
+                    ] else ...[
+                      ElevatedButton.icon(
+                        onPressed: () => _showTrackingTimeline(context, order),
+                        icon: const Icon(
+                          Icons.location_searching_rounded,
+                          size: 18,
+                        ),
+                        label: const Text('Track Order Live'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primary.withValues(
+                            alpha: 0.15,
+                          ),
+                          foregroundColor: AppTheme.primary,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -294,6 +364,8 @@ class _OrdersHistoryViewState extends State<OrdersHistoryView>
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'draft':
+        return Colors.blueGrey;
       case 'pending':
         return Colors.orange;
       case 'approved':

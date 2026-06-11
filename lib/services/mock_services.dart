@@ -1,5 +1,4 @@
 import 'dart:async';
-import '../core/mock/mock_database.dart';
 import '../core/common_imports.dart';
 
 class MockAuthService implements AuthRepository {
@@ -137,11 +136,21 @@ class MockOrderService implements OrderRepository {
     _emit();
 
     // Auto-create a mock notification for the employee
+    final isDraft = order.status.toLowerCase() == 'draft';
+    final isCompleted = order.status.toLowerCase() == 'completed';
     final notification = NotificationModel(
       id: 'notif-${DateTime.now().millisecondsSinceEpoch}',
       userId: order.employeeId,
-      title: 'Order Placed Successfully!',
-      message: 'Your order has been placed. Status: Pending approval.',
+      title: isDraft
+          ? 'Draft Saved 📝'
+          : isCompleted
+              ? 'Order Completed! 🎉'
+              : 'Order Placed Successfully!',
+      message: isDraft
+          ? 'Your order request has been saved as a draft.'
+          : isCompleted
+              ? 'Your order was successfully completed directly.'
+              : 'Your order has been placed. Status: Pending approval.',
       isRead: false,
       createdAt: DateTime.now(),
     );

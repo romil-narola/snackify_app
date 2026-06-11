@@ -63,3 +63,4 @@ export 'package:snackify_app/features/admin/presentation/views/admin_reports_vie
 export 'package:snackify_app/core/widgets/ordering_window_banner.dart';
 export 'package:snackify_app/features/admin/presentation/views/admin_combine_orders_view.dart';
 export 'package:snackify_app/features/admin/presentation/views/admin_settings_view.dart';
+export 'package:snackify_app/core/mock/mock_database.dart';

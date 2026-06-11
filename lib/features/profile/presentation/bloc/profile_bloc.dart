@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import '../../../../core/common_imports.dart';
-import '../../../../core/mock/mock_database.dart';
 
 // --- Events ---
 abstract class ProfileEvent extends Equatable {
