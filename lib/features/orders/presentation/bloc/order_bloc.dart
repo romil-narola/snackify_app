@@ -102,7 +102,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       if (!db.isOrderingOpen()) {
         emit(
           OrderOperationError(
-            'Ordering is closed. Ordering hours: ${db.orderStartTime} to ${db.orderCutoffTime}.',
+            'Ordering is closed. Ordering hours: ${db.orderStartTime.to12HourFormat()} to ${db.orderCutoffTime.to12HourFormat()}.',
           ),
         );
         return;

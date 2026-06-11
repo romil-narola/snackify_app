@@ -49,7 +49,7 @@ class _OrderingWindowBannerState extends State<OrderingWindowBanner> {
       textColor = AppTheme.error;
       icon = Icons.lock_clock_rounded;
       statusTitle = "Ordering is Closed";
-      statusSubtitle = "Hours: ${db.orderStartTime} to ${db.orderCutoffTime}";
+      statusSubtitle = "Hours: ${db.orderStartTime.to12HourFormat()} to ${db.orderCutoffTime.to12HourFormat()}";
     } else {
       if (isCombine) {
         bannerColor = AppTheme.primary.withValues(alpha: isDark ? 0.12 : 0.08);
@@ -57,14 +57,14 @@ class _OrderingWindowBannerState extends State<OrderingWindowBanner> {
         textColor = AppTheme.primary;
         icon = Icons.group_work_rounded;
         statusTitle = "Combined Ordering Active";
-        statusSubtitle = "Orders will aggregate. Cutoff at ${db.orderCutoffTime}";
+        statusSubtitle = "Orders will aggregate. Cutoff at ${db.orderCutoffTime.to12HourFormat()}";
       } else {
         bannerColor = AppTheme.success.withValues(alpha: isDark ? 0.12 : 0.08);
         borderColor = AppTheme.success.withValues(alpha: 0.3);
         textColor = AppTheme.success;
         icon = Icons.electric_bolt_rounded;
         statusTitle = "Single Ordering Active";
-        statusSubtitle = "Orders processed instantly. Cutoff at ${db.orderCutoffTime}";
+        statusSubtitle = "Orders processed instantly. Cutoff at ${db.orderCutoffTime.to12HourFormat()}";
       }
     }
 

@@ -26,7 +26,7 @@ class _CartViewState extends State<CartView> {
         builder: (dialogCtx) => AlertDialog(
           title: const Text('Confirm Combined Order'),
           content: Text(
-            'Your request will be aggregated with other employee orders and processed at the cutoff time (${db.orderCutoffTime}).\n\nDo you want to proceed?',
+            'Your request will be aggregated with other employee orders and processed at the cutoff time (${db.orderCutoffTime.to12HourFormat()}).\n\nDo you want to proceed?',
           ),
           actions: [
             TextButton(
