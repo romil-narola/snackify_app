@@ -11,6 +11,32 @@ class MockDatabase {
   UserModel? currentUser;
   bool isDarkTheme = false;
 
+  // Order Settings
+  bool isCombineOption = true;
+  String orderStartTime = "09:00";
+  String orderCutoffTime = "17:00";
+
+  bool isOrderingOpen() {
+    try {
+      final now = DateTime.now();
+      final startParts = orderStartTime.split(':');
+      final cutoffParts = orderCutoffTime.split(':');
+      if (startParts.length < 2 || cutoffParts.length < 2) return true;
+      
+      final startHour = int.parse(startParts[0]);
+      final startMin = int.parse(startParts[1]);
+      final cutoffHour = int.parse(cutoffParts[0]);
+      final cutoffMin = int.parse(cutoffParts[1]);
+      
+      final startTime = DateTime(now.year, now.month, now.day, startHour, startMin);
+      final cutoffTime = DateTime(now.year, now.month, now.day, cutoffHour, cutoffMin);
+      
+      return now.isAfter(startTime) && now.isBefore(cutoffTime);
+    } catch (e) {
+      return true;
+    }
+  }
+
   // Repositories
   final List<UserModel> users = [];
   final List<SnackModel> snacks = [];

@@ -1,4 +1,5 @@
 import '../../../../core/common_imports.dart';
+import '../../../../core/mock/mock_database.dart';
 
 class CartView extends StatefulWidget {
   const CartView({super.key});
@@ -19,6 +20,36 @@ class _CartViewState extends State<CartView> {
   void _checkout(BuildContext context, CartState state) {
     if (state.items.isEmpty) return;
 
+    final db = MockDatabase();
+    if (db.isCombineOption) {
+      showDialog(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          title: const Text('Confirm Combined Order'),
+          content: Text(
+            'Your request will be aggregated with other employee orders and processed at the cutoff time (${db.orderCutoffTime}).\n\nDo you want to proceed?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogCtx);
+                _executeCheckout(context, state);
+              },
+              child: const Text('Proceed'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      _executeCheckout(context, state);
+    }
+  }
+
+  void _executeCheckout(BuildContext context, CartState state) {
     // Dispatch place order event
     context.read<OrderBloc>().add(
       PlaceOrder(
@@ -149,6 +180,10 @@ class _CartViewState extends State<CartView> {
                       ),
                     ],
                   ),
+                ),
+
+                const OrderingWindowBanner(
+                  margin: EdgeInsets.only(left: 20, right: 20, bottom: 8),
                 ),
 
                 // Items list
@@ -398,8 +433,19 @@ class _CartViewState extends State<CartView> {
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: () => _checkout(context, state),
-                        child: const Text('Place Request'),
+                        onPressed: MockDatabase().isOrderingOpen()
+                            ? () => _checkout(context, state)
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: MockDatabase().isOrderingOpen()
+                              ? AppTheme.primary
+                              : Colors.grey,
+                        ),
+                        child: Text(
+                          MockDatabase().isOrderingOpen()
+                              ? 'Place Request'
+                              : 'Ordering Closed',
+                        ),
                       ),
                     ],
                   ),

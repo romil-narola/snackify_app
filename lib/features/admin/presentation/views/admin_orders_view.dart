@@ -1,7 +1,8 @@
 import '../../../../core/common_imports.dart';
 
 class AdminOrdersView extends StatefulWidget {
-  const AdminOrdersView({super.key});
+  final int? initialSubTabIndex;
+  const AdminOrdersView({super.key, this.initialSubTabIndex});
 
   @override
   State<AdminOrdersView> createState() => _AdminOrdersViewState();
@@ -23,7 +24,20 @@ class _AdminOrdersViewState extends State<AdminOrdersView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _statuses.length, vsync: this);
+    _tabController = TabController(
+      length: _statuses.length,
+      vsync: this,
+      initialIndex: widget.initialSubTabIndex ?? 0,
+    );
+  }
+
+  @override
+  void didUpdateWidget(AdminOrdersView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialSubTabIndex != null &&
+        widget.initialSubTabIndex != oldWidget.initialSubTabIndex) {
+      _tabController.animateTo(widget.initialSubTabIndex!);
+    }
   }
 
   @override

@@ -2,7 +2,7 @@ import '../../../../core/common_imports.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class AdminDashboardView extends StatelessWidget {
-  final Function(int) onTabChanged;
+  final Function(int, {int? subTabIndex}) onTabChanged;
 
   const AdminDashboardView({super.key, required this.onTabChanged});
 
@@ -68,7 +68,7 @@ class AdminDashboardView extends StatelessWidget {
                           ),
                           value: '${state.orders.length}',
                           title: 'Total Requests',
-                          onTap: () => onTabChanged(1), // Switch to Orders tab
+                          onTap: () => onTabChanged(1, subTabIndex: 0), // Switch to Orders tab (All)
                         ),
                         BentoCard(
                           icon: const Icon(
@@ -77,7 +77,9 @@ class AdminDashboardView extends StatelessWidget {
                           ),
                           value: '\$${state.totalRevenue.toStringAsFixed(2)}',
                           title: 'Revenue Earned',
-                          onTap: () => onTabChanged(4), // Switch to Reports tab
+                          onTap: () => onTabChanged(
+                            5,
+                          ), // Switch to Reports tab (index 5)
                         ),
                         BentoCard(
                           icon: const Icon(
@@ -87,7 +89,7 @@ class AdminDashboardView extends StatelessWidget {
                           value: '${state.pendingOrdersCount}',
                           title: 'Pending Orders',
                           subtitle: 'Awaiting Action',
-                          onTap: () => onTabChanged(1),
+                          onTap: () => onTabChanged(1, subTabIndex: 1), // Switch to Orders tab (Pending)
                         ),
                         BentoCard(
                           icon: const Icon(
@@ -97,7 +99,7 @@ class AdminDashboardView extends StatelessWidget {
                           value: '${state.completedOrdersCount}',
                           title: 'Ready/Done Orders',
                           subtitle: 'Completed requests',
-                          onTap: () => onTabChanged(1),
+                          onTap: () => onTabChanged(1, subTabIndex: 5), // Switch to Orders tab (Completed)
                         ),
                         BentoCard(
                           icon: const Icon(
@@ -107,8 +109,9 @@ class AdminDashboardView extends StatelessWidget {
                           value: '${state.snacks.length}',
                           title: 'Total Snacks',
                           subtitle: 'Items in catalog',
-                          onTap: () =>
-                              onTabChanged(2), // Switch to Snack manager
+                          onTap: () => onTabChanged(
+                            3,
+                          ), // Switch to Snack manager (index 3)
                         ),
                         BentoCard(
                           icon: const Icon(
@@ -118,8 +121,9 @@ class AdminDashboardView extends StatelessWidget {
                           value: '${state.employees.length}',
                           title: 'Staff Directory',
                           subtitle: 'Registered users',
-                          onTap: () =>
-                              onTabChanged(3), // Switch to Employee manager
+                          onTap: () => onTabChanged(
+                            4,
+                          ), // Switch to Employee manager (index 4)
                         ),
                       ],
                     ),

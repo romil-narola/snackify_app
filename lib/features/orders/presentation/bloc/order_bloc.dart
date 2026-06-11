@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
 import '../../../../core/common_imports.dart';
+import '../../../../core/mock/mock_database.dart';
 
 // --- Events ---
 abstract class OrderEvent extends Equatable {
@@ -88,6 +89,15 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   Future<void> _onPlaceOrder(PlaceOrder event, Emitter<OrderState> emit) async {
     emit(OrderLoading());
     try {
+      final db = MockDatabase();
+      if (!db.isOrderingOpen()) {
+        emit(
+          OrderOperationError(
+            'Ordering is closed. Ordering hours: ${db.orderStartTime} to ${db.orderCutoffTime}.',
+          ),
+        );
+        return;
+      }
       final user = await authRepository.getCurrentUser();
       if (user == null) {
         emit(

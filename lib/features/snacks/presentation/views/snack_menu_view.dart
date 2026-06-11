@@ -235,6 +235,10 @@ class _SnackMenuViewState extends State<SnackMenuView> {
               ),
             ),
 
+            const OrderingWindowBanner(
+              margin: EdgeInsets.only(left: 20, right: 20, bottom: 8),
+            ),
+
             // Category Chips Row
             BlocBuilder<SnackBloc, SnackState>(
               builder: (context, state) {

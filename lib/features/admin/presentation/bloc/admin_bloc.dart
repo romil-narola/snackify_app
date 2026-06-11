@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
 import '../../../../core/common_imports.dart';
+import '../../../../core/mock/mock_database.dart';
 
 // --- Events ---
 abstract class AdminEvent extends Equatable {
@@ -60,6 +61,19 @@ class LoadReports extends AdminEvent {
   List<Object?> get props => [range];
 }
 
+class AdminUpdateSettings extends AdminEvent {
+  final bool isCombineOption;
+  final String startTime;
+  final String cutoffTime;
+  const AdminUpdateSettings({
+    required this.isCombineOption,
+    required this.startTime,
+    required this.cutoffTime,
+  });
+  @override
+  List<Object?> get props => [isCombineOption, startTime, cutoffTime];
+}
+
 // --- States ---
 abstract class AdminState extends Equatable {
   const AdminState();
@@ -78,6 +92,9 @@ class AdminDashboardLoaded extends AdminState {
   final double totalRevenue;
   final int pendingOrdersCount;
   final int completedOrdersCount;
+  final bool isCombineOption;
+  final String orderStartTime;
+  final String orderCutoffTime;
 
   const AdminDashboardLoaded({
     required this.snacks,
@@ -86,6 +103,9 @@ class AdminDashboardLoaded extends AdminState {
     required this.totalRevenue,
     required this.pendingOrdersCount,
     required this.completedOrdersCount,
+    required this.isCombineOption,
+    required this.orderStartTime,
+    required this.orderCutoffTime,
   });
 
   @override
@@ -96,6 +116,9 @@ class AdminDashboardLoaded extends AdminState {
     totalRevenue,
     pendingOrdersCount,
     completedOrdersCount,
+    isCombineOption,
+    orderStartTime,
+    orderCutoffTime,
   ];
 }
 
@@ -159,6 +182,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     on<AdminUpdateOrderStatus>(_onAdminUpdateOrderStatus);
     on<AdminToggleEmployeeActive>(_onAdminToggleEmployeeActive);
     on<LoadReports>(_onLoadReports);
+    on<AdminUpdateSettings>(_onAdminUpdateSettings);
     on(_onDashboardDataRefreshed);
   }
 
@@ -217,6 +241,7 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
       }
     }
 
+    final db = MockDatabase();
     emit(
       AdminDashboardLoaded(
         snacks: event.snacks,
@@ -225,6 +250,9 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
         totalRevenue: revenue,
         pendingOrdersCount: pending,
         completedOrdersCount: completed,
+        isCombineOption: db.isCombineOption,
+        orderStartTime: db.orderStartTime,
+        orderCutoffTime: db.orderCutoffTime,
       ),
     );
   }
@@ -297,6 +325,23 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     emit(AdminLoading());
     try {
       await employeeRepository.toggleEmployeeActive(event.uid, event.isActive);
+      emit(AdminActionSuccess());
+      add(LoadAdminDashboard());
+    } catch (e) {
+      emit(AdminError(e.toString()));
+    }
+  }
+
+  Future<void> _onAdminUpdateSettings(
+    AdminUpdateSettings event,
+    Emitter<AdminState> emit,
+  ) async {
+    emit(AdminLoading());
+    try {
+      final db = MockDatabase();
+      db.isCombineOption = event.isCombineOption;
+      db.orderStartTime = event.startTime;
+      db.orderCutoffTime = event.cutoffTime;
       emit(AdminActionSuccess());
       add(LoadAdminDashboard());
     } catch (e) {

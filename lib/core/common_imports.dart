@@ -60,3 +60,6 @@ export 'package:snackify_app/features/admin/presentation/views/add_edit_snack_sc
 export 'package:snackify_app/features/admin/presentation/views/admin_orders_view.dart';
 export 'package:snackify_app/features/admin/presentation/views/admin_employees_view.dart';
 export 'package:snackify_app/features/admin/presentation/views/admin_reports_view.dart';
+export 'package:snackify_app/core/widgets/ordering_window_banner.dart';
+export 'package:snackify_app/features/admin/presentation/views/admin_combine_orders_view.dart';
+export 'package:snackify_app/features/admin/presentation/views/admin_settings_view.dart';

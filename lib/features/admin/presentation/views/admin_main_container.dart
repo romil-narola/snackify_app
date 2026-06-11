@@ -9,6 +9,7 @@ class AdminMainContainer extends StatefulWidget {
 
 class _AdminMainContainerState extends State<AdminMainContainer> {
   int _currentIndex = 0;
+  int? _initialOrdersSubTabIndex;
 
   @override
   void initState() {
@@ -16,28 +17,41 @@ class _AdminMainContainerState extends State<AdminMainContainer> {
     context.read<AdminBloc>().add(LoadAdminDashboard());
   }
 
-  void _onTabChanged(int index) {
+  void _onTabChanged(int index, {int? subTabIndex}) {
     setState(() {
       _currentIndex = index;
+      _initialOrdersSubTabIndex = index == 1 ? subTabIndex : null;
     });
+    // Ensure dashboard state is re-fetched if we are returning to a tab
+    // that expects AdminDashboardLoaded state (e.g. from Business Reports)
+    if (index >= 0 && index <= 4) {
+      final state = context.read<AdminBloc>().state;
+      if (state is! AdminDashboardLoaded) {
+        context.read<AdminBloc>().add(LoadAdminDashboard());
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final List<Widget> views = [
       AdminDashboardView(onTabChanged: _onTabChanged),
-      const AdminOrdersView(),
+      AdminOrdersView(initialSubTabIndex: _initialOrdersSubTabIndex),
+      const AdminCombineOrdersView(),
       const AdminSnacksView(),
       const AdminEmployeesView(),
       const AdminReportsView(),
+      const AdminSettingsView(),
     ];
 
     final titles = [
       'Overview Console',
       'Order Processings',
+      'Combined Orders',
       'Inventory Catalog',
       'Staff Directory',
       'Business Reports',
+      'Pantry Settings',
     ];
 
     return Scaffold(
@@ -94,16 +108,26 @@ class _AdminMainContainerState extends State<AdminMainContainer> {
               'Order Processings',
               Icons.receipt_long_rounded,
             ),
-            _buildDrawerTile(2, 'Snack Management', Icons.fastfood_rounded),
             _buildDrawerTile(
-              3,
+              2,
+              'Combined Orders',
+              Icons.layers_rounded,
+            ),
+            _buildDrawerTile(3, 'Snack Management', Icons.fastfood_rounded),
+            _buildDrawerTile(
+              4,
               'Employee Directory',
               Icons.people_outline_rounded,
             ),
             _buildDrawerTile(
-              4,
+              5,
               'Operations Reports',
               Icons.pie_chart_outline_rounded,
+            ),
+            _buildDrawerTile(
+              6,
+              'Pantry Settings',
+              Icons.settings_suggest_rounded,
             ),
             const Spacer(),
             const Divider(),

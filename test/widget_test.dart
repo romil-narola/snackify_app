@@ -11,6 +11,6 @@ void main() {
     await tester.pumpWidget(const MyApp());
 
     // Verify splash screen displays the app name
-    expect(find.text('Snakify'), findsOneWidget);
+    expect(find.text('Snackify'), findsOneWidget);
   });
 }
