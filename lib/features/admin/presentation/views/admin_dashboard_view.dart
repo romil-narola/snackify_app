@@ -85,7 +85,7 @@ class AdminDashboardView extends StatelessWidget {
                           value: '${state.orders.length}',
                           title: 'Total Requests',
                           onTap: () => onTabChanged(
-                            1,
+                            state.isCombineOption ? 2 : 1,
                             subTabIndex: 0,
                           ), // Switch to Orders tab (All)
                         ),
@@ -117,8 +117,8 @@ class AdminDashboardView extends StatelessWidget {
                               ? 'Awaiting Action'
                               : 'Saved Drafts',
                           onTap: () => onTabChanged(
-                            1,
-                            subTabIndex: 1,
+                            state.isCombineOption ? 2 : 1,
+                            subTabIndex: state.isCombineOption ? 0 : 1,
                           ), // Switch to Orders tab (Pending or Draft)
                         ),
                         BentoCard(
@@ -132,8 +132,10 @@ class AdminDashboardView extends StatelessWidget {
                               : 'Completed Orders',
                           subtitle: 'Completed requests',
                           onTap: () => onTabChanged(
-                            1,
-                            subTabIndex: state.isStatusWise ? 5 : 2,
+                            state.isCombineOption ? 2 : 1,
+                            subTabIndex: state.isCombineOption
+                                ? 1
+                                : (state.isStatusWise ? 5 : 2),
                           ), // Switch to Completed tab
                         ),
                         BentoCard(

@@ -1,7 +1,41 @@
 import '../../../../core/common_imports.dart';
 
-class AdminCombineOrdersView extends StatelessWidget {
-  const AdminCombineOrdersView({super.key});
+class AdminCombineOrdersView extends StatefulWidget {
+  final int? initialTabIndex;
+  const AdminCombineOrdersView({super.key, this.initialTabIndex});
+
+  @override
+  State<AdminCombineOrdersView> createState() => _AdminCombineOrdersViewState();
+}
+
+class _AdminCombineOrdersViewState extends State<AdminCombineOrdersView>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTabIndex ?? 0,
+    );
+  }
+
+  @override
+  void didUpdateWidget(AdminCombineOrdersView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialTabIndex != null &&
+        widget.initialTabIndex != oldWidget.initialTabIndex) {
+      _tabController.animateTo(widget.initialTabIndex!);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   // Helper class to hold combined order data
   List<_CombinedSnackGroup> _groupOrders(
@@ -111,40 +145,39 @@ class AdminCombineOrdersView extends StatelessWidget {
     final isDark = context.isDarkMode;
     final db = MockDatabase();
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        body: Column(
-          children: [
-            TabBar(
-              indicatorColor: AppTheme.primary,
-              labelColor: AppTheme.primary,
-              unselectedLabelColor: isDark ? Colors.white60 : Colors.black54,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-              tabs: [
-                Tab(
-                  text: db.isStatusWise
-                      ? 'Active Aggregations'
-                      : 'Draft Aggregations',
-                ),
-                Tab(
-                  text: db.isStatusWise
-                      ? 'Combined History'
-                      : 'Completed History',
-                ),
+    return Scaffold(
+      body: Column(
+        children: [
+          TabBar(
+            controller: _tabController,
+            indicatorColor: AppTheme.primary,
+            labelColor: AppTheme.primary,
+            unselectedLabelColor: isDark ? Colors.white60 : Colors.black54,
+            labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+            tabs: [
+              Tab(
+                text: db.isStatusWise
+                    ? 'Active Aggregations'
+                    : 'Draft Aggregations',
+              ),
+              Tab(
+                text: db.isStatusWise
+                    ? 'Combined History'
+                    : 'Completed History',
+              ),
+            ],
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildGroupedList(context, isHistory: false),
+                _buildGroupedList(context, isHistory: true),
               ],
             ),
-            const Divider(height: 1),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  _buildGroupedList(context, isHistory: false),
-                  _buildGroupedList(context, isHistory: true),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

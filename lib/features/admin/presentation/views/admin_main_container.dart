@@ -20,7 +20,9 @@ class _AdminMainContainerState extends State<AdminMainContainer> {
   void _onTabChanged(int index, {int? subTabIndex}) {
     setState(() {
       _currentIndex = index;
-      _initialOrdersSubTabIndex = index == 1 ? subTabIndex : null;
+      _initialOrdersSubTabIndex = (index == 1 || index == 2)
+          ? subTabIndex
+          : null;
     });
     // Ensure dashboard state is re-fetched if we are returning to a tab
     // that expects AdminDashboardLoaded state (e.g. from Business Reports)
@@ -34,10 +36,25 @@ class _AdminMainContainerState extends State<AdminMainContainer> {
 
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<AdminBloc>().state;
+    bool isCombine = true;
+    if (state is AdminDashboardLoaded) {
+      isCombine = state.isCombineOption;
+    } else {
+      isCombine = MockDatabase().isCombineOption;
+    }
+
+    // Adjust _currentIndex if it targets a hidden tab
+    if (isCombine && _currentIndex == 1) {
+      _currentIndex = 2; // Switch to Combined Orders
+    } else if (!isCombine && _currentIndex == 2) {
+      _currentIndex = 1; // Switch to Order Processings
+    }
+
     final List<Widget> views = [
       AdminDashboardView(onTabChanged: _onTabChanged),
       AdminOrdersView(initialSubTabIndex: _initialOrdersSubTabIndex),
-      const AdminCombineOrdersView(),
+      AdminCombineOrdersView(initialTabIndex: _initialOrdersSubTabIndex),
       const AdminSnacksView(),
       const AdminEmployeesView(),
       const AdminReportsView(),
@@ -103,16 +120,14 @@ class _AdminMainContainerState extends State<AdminMainContainer> {
               ),
             ),
             _buildDrawerTile(0, 'Dashboard Overview', Icons.dashboard_outlined),
-            _buildDrawerTile(
-              1,
-              'Order Processings',
-              Icons.receipt_long_rounded,
-            ),
-            _buildDrawerTile(
-              2,
-              'Combined Orders',
-              Icons.layers_rounded,
-            ),
+            if (!isCombine)
+              _buildDrawerTile(
+                1,
+                'Order Processings',
+                Icons.receipt_long_rounded,
+              ),
+            if (isCombine)
+              _buildDrawerTile(2, 'Combined Orders', Icons.layers_rounded),
             _buildDrawerTile(3, 'Snack Management', Icons.fastfood_rounded),
             _buildDrawerTile(
               4,
