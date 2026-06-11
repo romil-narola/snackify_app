@@ -68,7 +68,10 @@ class AdminDashboardView extends StatelessWidget {
                           ),
                           value: '${state.orders.length}',
                           title: 'Total Requests',
-                          onTap: () => onTabChanged(1, subTabIndex: 0), // Switch to Orders tab (All)
+                          onTap: () => onTabChanged(
+                            1,
+                            subTabIndex: 0,
+                          ), // Switch to Orders tab (All)
                         ),
                         BentoCard(
                           icon: const Icon(
@@ -82,14 +85,25 @@ class AdminDashboardView extends StatelessWidget {
                           ), // Switch to Reports tab (index 5)
                         ),
                         BentoCard(
-                          icon: const Icon(
-                            Icons.pending_actions_rounded,
-                            color: Colors.orange,
+                          icon: Icon(
+                            state.isStatusWise
+                                ? Icons.pending_actions_rounded
+                                : Icons.drafts_outlined,
+                            color: state.isStatusWise
+                                ? Colors.orange
+                                : Colors.blueGrey,
                           ),
                           value: '${state.pendingOrdersCount}',
-                          title: 'Pending Orders',
-                          subtitle: 'Awaiting Action',
-                          onTap: () => onTabChanged(1, subTabIndex: 1), // Switch to Orders tab (Pending)
+                          title: state.isStatusWise
+                              ? 'Pending Orders'
+                              : 'Draft Orders',
+                          subtitle: state.isStatusWise
+                              ? 'Awaiting Action'
+                              : 'Saved Drafts',
+                          onTap: () => onTabChanged(
+                            1,
+                            subTabIndex: 1,
+                          ), // Switch to Orders tab (Pending or Draft)
                         ),
                         BentoCard(
                           icon: const Icon(
@@ -97,9 +111,14 @@ class AdminDashboardView extends StatelessWidget {
                             color: AppTheme.secondary,
                           ),
                           value: '${state.completedOrdersCount}',
-                          title: 'Ready/Done Orders',
+                          title: state.isStatusWise
+                              ? 'Ready/Done Orders'
+                              : 'Completed Orders',
                           subtitle: 'Completed requests',
-                          onTap: () => onTabChanged(1, subTabIndex: 5), // Switch to Orders tab (Completed)
+                          onTap: () => onTabChanged(
+                            1,
+                            subTabIndex: state.isStatusWise ? 5 : 2,
+                          ), // Switch to Completed tab
                         ),
                         BentoCard(
                           icon: const Icon(

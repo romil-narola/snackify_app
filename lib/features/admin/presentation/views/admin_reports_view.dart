@@ -131,7 +131,9 @@ class _AdminReportsViewState extends State<AdminReportsView> {
                                 color: AppTheme.primary,
                               ),
                               value: '${state.totalOrdersCount}',
-                              title: 'Orders Processed',
+                              title: MockDatabase().isStatusWise
+                                  ? 'Orders Processed'
+                                  : 'Orders Completed',
                             ),
                           ),
                           const SizedBox(width: 14),

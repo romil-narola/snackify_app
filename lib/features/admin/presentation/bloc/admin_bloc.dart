@@ -232,20 +232,26 @@ class AdminBloc extends Bloc<AdminEvent, AdminState> {
     _AdminDashboardUpdated event,
     Emitter<AdminState> emit,
   ) {
+    final db = MockDatabase();
     double revenue = 0.0;
     int pending = 0;
     int completed = 0;
-
     for (var o in event.orders) {
       if (o.status == 'completed') {
         revenue += o.totalAmount;
         completed++;
-      } else if (o.status == 'pending') {
-        pending++;
+      } else {
+        if (db.isStatusWise) {
+          if (o.status == 'pending') {
+            pending++;
+          }
+        } else {
+          if (o.status == 'draft') {
+            pending++;
+          }
+        }
       }
     }
-
-    final db = MockDatabase();
     emit(
       AdminDashboardLoaded(
         snacks: event.snacks,
